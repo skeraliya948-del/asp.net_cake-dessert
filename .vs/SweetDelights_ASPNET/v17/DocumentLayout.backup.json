@@ -1,0 +1,149 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\SweetDelights_ASPNET\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|d:\\sweetdelights_aspnet\\insert.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|solutionrelative:insert.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|D:\\SweetDelights_ASPNET\\add_to_cart.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|solutionrelative:add_to_cart.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|D:\\SweetDelights_ASPNET\\add_company.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|solutionrelative:add_company.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|D:\\SweetDelights_ASPNET\\cart.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|solutionrelative:cart.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|D:\\SweetDelights_ASPNET\\login.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|solutionrelative:login.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|D:\\SweetDelights_ASPNET\\add_products.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|solutionrelative:add_products.aspx.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|D:\\SweetDelights_ASPNET\\add_company.aspx||{57312C73-6202-49E9-B1E1-40EA1A6DC1F6}",
+      "RelativeMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|solutionrelative:add_company.aspx||{57312C73-6202-49E9-B1E1-40EA1A6DC1F6}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|D:\\SweetDelights_ASPNET\\default.aspx||{57312C73-6202-49E9-B1E1-40EA1A6DC1F6}",
+      "RelativeMoniker": "D:0:0:{A1234567-89AB-CDEF-0123-456789ABCDEF}|SweetDelights_ASPNET.csproj|solutionrelative:default.aspx||{57312C73-6202-49E9-B1E1-40EA1A6DC1F6}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Add_To_Cart.aspx.cs",
+              "DocumentMoniker": "D:\\SweetDelights_ASPNET\\Add_To_Cart.aspx.cs",
+              "RelativeDocumentMoniker": "Add_To_Cart.aspx.cs",
+              "ToolTip": "D:\\SweetDelights_ASPNET\\Add_To_Cart.aspx.cs",
+              "RelativeToolTip": "Add_To_Cart.aspx.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-07T04:06:23.535Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "insert.aspx.cs",
+              "DocumentMoniker": "D:\\SweetDelights_ASPNET\\insert.aspx.cs",
+              "RelativeDocumentMoniker": "insert.aspx.cs",
+              "ToolTip": "D:\\SweetDelights_ASPNET\\insert.aspx.cs",
+              "RelativeToolTip": "insert.aspx.cs",
+              "ViewState": "AgIAAIMAAAAAAAAAAAAAANEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-06T19:55:12.55Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Add_Company.aspx.cs",
+              "DocumentMoniker": "D:\\SweetDelights_ASPNET\\Add_Company.aspx.cs",
+              "RelativeDocumentMoniker": "Add_Company.aspx.cs",
+              "ToolTip": "D:\\SweetDelights_ASPNET\\Add_Company.aspx.cs",
+              "RelativeToolTip": "Add_Company.aspx.cs",
+              "ViewState": "AgIAADkAAAAAAAAAAAAAAF0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-07T04:06:17.334Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Add_Products.aspx.cs",
+              "DocumentMoniker": "D:\\SweetDelights_ASPNET\\Add_Products.aspx.cs",
+              "RelativeDocumentMoniker": "Add_Products.aspx.cs",
+              "ToolTip": "D:\\SweetDelights_ASPNET\\Add_Products.aspx.cs",
+              "RelativeToolTip": "Add_Products.aspx.cs",
+              "ViewState": "AgIAAHgAAAAAAAAAAADwv5AAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-06T19:55:34.306Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Login.aspx.cs",
+              "DocumentMoniker": "D:\\SweetDelights_ASPNET\\Login.aspx.cs",
+              "RelativeDocumentMoniker": "Login.aspx.cs",
+              "ToolTip": "D:\\SweetDelights_ASPNET\\Login.aspx.cs",
+              "RelativeToolTip": "Login.aspx.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-06T19:54:55.113Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Cart.aspx.cs",
+              "DocumentMoniker": "D:\\SweetDelights_ASPNET\\Cart.aspx.cs",
+              "RelativeDocumentMoniker": "Cart.aspx.cs",
+              "ToolTip": "D:\\SweetDelights_ASPNET\\Cart.aspx.cs",
+              "RelativeToolTip": "Cart.aspx.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-07T04:06:27.882Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Add_Company.aspx",
+              "DocumentMoniker": "D:\\SweetDelights_ASPNET\\Add_Company.aspx",
+              "RelativeDocumentMoniker": "Add_Company.aspx",
+              "ToolTip": "D:\\SweetDelights_ASPNET\\Add_Company.aspx",
+              "RelativeToolTip": "Add_Company.aspx",
+              "LogicalView": "7651a703-06e5-11d1-8ebd-00a0c90f26ea",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000195|",
+              "WhenOpened": "2026-10-07T04:36:05.013Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Default.aspx",
+              "DocumentMoniker": "D:\\SweetDelights_ASPNET\\Default.aspx",
+              "RelativeDocumentMoniker": "Default.aspx",
+              "ToolTip": "D:\\SweetDelights_ASPNET\\Default.aspx",
+              "RelativeToolTip": "Default.aspx",
+              "LogicalView": "7651a703-06e5-11d1-8ebd-00a0c90f26ea",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000195|",
+              "WhenOpened": "2026-10-06T18:39:13.502Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
