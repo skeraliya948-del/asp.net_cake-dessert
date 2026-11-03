@@ -22,7 +22,8 @@ namespace SweetDelights
 
         void getCon()
         {
-            con = DatabaseHelper.GetOpenConnection();
+            con = new SqlConnection(s);
+            con.Open();
         }
 
         void fillGrid()
@@ -31,25 +32,12 @@ namespace SweetDelights
             da = new SqlDataAdapter("Select * from Add_Company_Tbl", con);
             ds = new DataSet();
             da.Fill(ds);
-            con.Close();
         }
 
         void filUpload()
         {
-            if (imgUpload.HasFile)
-            {
-                string folderPath = Server.MapPath("images/");
-                if (!System.IO.Directory.Exists(folderPath))
-                {
-                    System.IO.Directory.CreateDirectory(folderPath);
-                }
-                fnm = "images/" + imgUpload.FileName;
-                imgUpload.SaveAs(Server.MapPath(fnm));
-            }
-            else
-            {
-                fnm = "images/default-company.jpg";
-            }
+            fnm = "images/" + imgUpload.FileName;
+            imgUpload.SaveAs(Server.MapPath(fnm));
         }
 
         void clear()
@@ -58,14 +46,14 @@ namespace SweetDelights
             txtadd.Text = string.Empty;
             txteml.Text = string.Empty;
             txtonm.Text = string.Empty;
+
         }
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (!DatabaseHelper.IsAdminEmail(Convert.ToString(Session["admin"])))
+            if (Session["admin"] == null)
             {
-                Response.Redirect("Login.aspx");
-                return;
+                Response.Redirect("login.aspx");
             }
 
             if (!IsPostBack)
@@ -83,19 +71,10 @@ namespace SweetDelights
         {
             getCon();
             filUpload();
-            cmd = new SqlCommand(
-                "INSERT INTO Add_Company_Tbl (Comp_Name, Comp_Owner_Name, Comp_Email, Comp_Address, Comp_Cover_Img) " +
-                "VALUES (@Comp_Name, @Comp_Owner_Name, @Comp_Email, @Comp_Address, @Comp_Cover_Img)",
-                con);
-            cmd.Parameters.Add("@Comp_Name", SqlDbType.VarChar, 150).Value = txtnm.Text;
-            cmd.Parameters.Add("@Comp_Owner_Name", SqlDbType.VarChar, 150).Value = txtonm.Text;
-            cmd.Parameters.Add("@Comp_Email", SqlDbType.VarChar, 100).Value = txteml.Text;
-            cmd.Parameters.Add("@Comp_Address", SqlDbType.VarChar, 255).Value = txtadd.Text;
-            cmd.Parameters.Add("@Comp_Cover_Img", SqlDbType.VarChar, 255).Value = fnm;
+            cmd = new SqlCommand("insert into Add_Company_Tbl(Comp_Name, Comp_Owner_Name,Comp_Email,Comp_Address,Comp_Cover_Img) values('" + txtnm.Text + "','" + txtonm.Text + "','" + txteml.Text + "','" + txtadd.Text + "','" + fnm + "')", con);
             cmd.ExecuteNonQuery();
-            con.Close();
             clear();
-            Response.Write("<script>alert('Company Added Successfully')</script>");
+            
         }
     }
 }

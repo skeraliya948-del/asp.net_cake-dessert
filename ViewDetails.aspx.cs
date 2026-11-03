@@ -7,51 +7,60 @@ namespace SweetDelights
 {
     public partial class ViewDetails : Page
     {
-        private void FillDataList(int productId)
+        SqlConnection con;
+        SqlDataAdapter da;
+        DataSet ds;
+
+        string s = ConfigurationManager
+                    .ConnectionStrings["dbcon"]
+                    .ConnectionString;
+
+        void getCon()
         {
-            using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-            using (SqlCommand cmd = new SqlCommand(
-                "SELECT * FROM Add_Products_Tbl WHERE Prod_Id = @Product_Id",
-                con))
-            using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+            con = new SqlConnection(s);
+            con.Open();
+        }
+
+        void fillDataList()
+        {
+            string pid = Request.QueryString["pid"];
+
+            if (string.IsNullOrEmpty(pid))
             {
-                cmd.Parameters.Add("@Product_Id", SqlDbType.Int).Value = productId;
-
-                DataTable product = new DataTable();
-                adapter.Fill(product);
-
-                if (product.Rows.Count == 0)
-                {
-                    lblEmpty.Visible = true;
-                    lblEmpty.Text = "The requested product could not be found.";
-                    return;
-                }
-
-                DataList1.DataSource = product;
-                DataList1.DataBind();
-                lblEmpty.Visible = false;
+                return;
             }
+
+            getCon();
+
+            da = new SqlDataAdapter(
+                "SELECT * FROM Add_Products_Tbl WHERE Prod_Id = " + pid,
+                con
+            );
+
+            ds = new DataSet();
+
+            da.Fill(ds);
+
+            if (ds.Tables[0].Rows.Count > 0)
+            {
+                DataList1.DataSource = ds;
+                DataList1.DataBind();
+            }
+
+            con.Close();
         }
 
         protected void Page_Load(object sender, EventArgs e)
         {
             if (Session["admin"] == null)
             {
-                Response.Redirect("Login.aspx");
+                Response.Redirect("login.aspx");
                 return;
             }
 
             if (!IsPostBack)
             {
-                int productId;
-                if (!int.TryParse(Request.QueryString["pid"], out productId) || productId <= 0)
-                {
-                    lblEmpty.Visible = true;
-                    lblEmpty.Text = "A valid product ID is required.";
-                    return;
-                }
-
-                FillDataList(productId);
+                fillDataList();
             }
         }
     }

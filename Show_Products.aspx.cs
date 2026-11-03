@@ -9,39 +9,75 @@ namespace SweetDelights
 {
     public partial class Show_Products : Page
     {
-        private void FillProducts(int? companyId)
+        SqlConnection con;
+        SqlDataAdapter da;
+        DataSet ds;
+
+        string s = ConfigurationManager
+                    .ConnectionStrings["dbcon"]
+                    .ConnectionString;
+
+        void getCon()
         {
-            string query = "SELECT * FROM Add_Products_Tbl";
-            if (companyId.HasValue)
+            con = new SqlConnection(s);
+            con.Open();
+        }
+
+
+        void fillAllProducts()
+        {
+            getCon();
+
+            da = new SqlDataAdapter(
+                "SELECT * FROM Add_Products_Tbl",
+                con
+            );
+
+            ds = new DataSet();
+
+            da.Fill(ds);
+
+            DataList1.DataSource = ds;
+            DataList1.DataBind();
+
+            if (ds.Tables[0].Rows.Count == 0)
             {
-                query += " WHERE Prod_Comp_Id = @Company_Id";
+                lblEmpty.Visible = true;
+                lblEmpty.Text = "No products found.";
+            }
+            else
+            {
+                lblEmpty.Visible = false;
             }
 
-            using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-            using (SqlCommand cmd = new SqlCommand(query, con))
-            using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+
+        }
+
+
+        void fillCompanyProducts(int cid)
+        {
+            getCon();
+
+            da = new SqlDataAdapter(
+                "SELECT * FROM Add_Products_Tbl WHERE Prod_Comp_Id = " + cid,
+                con
+            );
+
+            ds = new DataSet();
+
+            da.Fill(ds);
+
+            DataList1.DataSource = ds;
+            DataList1.DataBind();
+
+            if (ds.Tables[0].Rows.Count == 0)
             {
-                if (companyId.HasValue)
-                {
-                    cmd.Parameters.Add("@Company_Id", SqlDbType.Int).Value = companyId.Value;
-                }
-
-                DataTable products = new DataTable();
-                adapter.Fill(products);
-                DataList1.DataSource = products;
-                DataList1.DataBind();
-
-                if (products.Rows.Count == 0)
-                {
-                    lblEmpty.Visible = true;
-                    lblEmpty.Text = companyId.HasValue
-                        ? "No products found for this company."
-                        : "No products found.";
-                }
-                else
-                {
-                    lblEmpty.Visible = false;
-                }
+                lblEmpty.Visible = true;
+                lblEmpty.Text = "No products found for this company.";
+            }
+            else
+            {
+                lblEmpty.Visible = false;
             }
         }
 
@@ -49,109 +85,101 @@ namespace SweetDelights
         {
             if (Session["admin"] == null)
             {
-                Response.Redirect("Login.aspx");
+                Response.Redirect("login.aspx");
                 return;
             }
 
             if (!IsPostBack)
             {
-                Label3.Text = "Welcome, " +
-                    HttpUtility.HtmlEncode(Convert.ToString(Session["admin"]));
+                Label3.Text =
+                    "Welcome, " + Session["admin"].ToString();
 
-                string companyIdValue = Request.QueryString["cid"];
-                if (string.IsNullOrWhiteSpace(companyIdValue))
+                string cid = Request.QueryString["cid"];
+
+                if (string.IsNullOrEmpty(cid))
                 {
-                    FillProducts(null);
-                    return;
+
+                    fillAllProducts();
+                }
+                else
+                {
+
+                    int companyId = Convert.ToInt32(cid);
+
+                    fillCompanyProducts(companyId);
                 }
 
-                int companyId;
-                if (!int.TryParse(companyIdValue, out companyId) || companyId <= 0)
-                {
-                    lblEmpty.Visible = true;
-                    lblEmpty.Text = "The selected company is invalid.";
-                    return;
-                }
-
-                FillProducts(companyId);
             }
-        }
 
         protected void DataList1_ItemCommand(object source, DataListCommandEventArgs e)
         {
-            int recordId = 0;
-            if ((e.CommandName == "cmd_view" || e.CommandName == "cmd_cart") &&
-                (!int.TryParse(Convert.ToString(e.CommandArgument), out recordId) || recordId <= 0))
-            {
-                throw new InvalidOperationException("The selected product has an invalid ID.");
-            }
-
             if (e.CommandName == "cmd_view")
             {
-                Response.Redirect("ViewDetails.aspx?pid=" + recordId);
-                return;
+                int id = Convert.ToInt32(e.CommandArgument);
+
+                Response.Redirect(
+                    "ViewDetails.aspx?pid=" + id
+                );
             }
 
-            if (e.CommandName != "cmd_cart")
+            if (e.CommandName == "cmd_cart")
             {
-                return;
-            }
+                int productId = Convert.ToInt32(e.CommandArgument);
 
-            int userId;
-            if (!int.TryParse(Convert.ToString(Session["uid"]), out userId) || userId <= 0)
-            {
-                Response.Redirect("Login.aspx");
-                return;
-            }
-
-            using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-            using (SqlTransaction transaction = con.BeginTransaction(IsolationLevel.Serializable))
-            {
-                try
+                if (Session["uid"] == null)
                 {
-                    using (SqlCommand productCommand = new SqlCommand(
-                        "SELECT Prod_Id FROM Add_Products_Tbl WITH (UPDLOCK, HOLDLOCK) WHERE Prod_Id = @Product_Id",
-                        con, transaction))
-                    {
-                        productCommand.Parameters.Add("@Product_Id", SqlDbType.Int).Value = recordId;
-                        if (productCommand.ExecuteScalar() == null)
-                        {
-                            transaction.Rollback();
-                            lblEmpty.Visible = true;
-                            lblEmpty.Text = "This product is no longer available.";
-                            return;
-                        }
-                    }
-
-                    using (SqlCommand cartCommand = new SqlCommand(
-                        "UPDATE Cart_Tbl WITH (UPDLOCK, HOLDLOCK) " +
-                        "SET Quentity = Quentity + 1 " +
-                        "WHERE Cart_User_Id = @User_Id AND Cart_Prod_Id = @Product_Id; " +
-                        "IF @@ROWCOUNT = 0 " +
-                        "INSERT INTO Cart_Tbl (Cart_User_Id, Cart_Prod_Id, Quentity, AddedDate) " +
-                        "VALUES (@User_Id, @Product_Id, 1, GETDATE())",
-                        con, transaction))
-                    {
-                        cartCommand.Parameters.Add("@User_Id", SqlDbType.Int).Value = userId;
-                        cartCommand.Parameters.Add("@Product_Id", SqlDbType.Int).Value = recordId;
-                        cartCommand.ExecuteNonQuery();
-                    }
-
-                    transaction.Commit();
+                    Response.Redirect("login.aspx");
+                    return;
                 }
-                catch
+
+                int userId = Convert.ToInt32(Session["uid"]);
+
+                getCon();
+
+
+                SqlCommand checkCmd = new SqlCommand(
+                    "SELECT COUNT(*) FROM Cart_Tbl WHERE Cart_User_Id = "
+                    + userId +
+                    " AND Cart_Prod_Id = "
+                    + productId,
+                    con
+                );
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count > 0)
                 {
-                    if (transaction.Connection != null)
-                    {
-                        transaction.Rollback();
-                    }
 
-                    throw;
+                    SqlCommand updateCmd = new SqlCommand(
+                        "UPDATE Cart_Tbl SET Quentity = Quentity + 1 " +
+                        "WHERE Cart_User_Id = " + userId +
+                        " AND Cart_Prod_Id = " + productId,
+                        con
+                    );
+
+                    updateCmd.ExecuteNonQuery();
                 }
-            }
+                else
+                {
 
-            Response.Redirect("Add_To_Cart.aspx", false);
-            Context.ApplicationInstance.CompleteRequest();
+                    SqlCommand insertCmd = new SqlCommand(
+                        "INSERT INTO Cart_Tbl " +
+                        "(Cart_User_Id, Cart_Prod_Id, Quentity, AddedDate) " +
+                        "VALUES (" +
+                        userId + ", " +
+                        productId + ", " +
+                        "1, GETDATE())",
+                        con
+                    );
+
+                    insertCmd.ExecuteNonQuery();
+                }
+
+
+
+
+                Response.Redirect("Add_To_Cart.aspx");
+            }
         }
     }
 }
