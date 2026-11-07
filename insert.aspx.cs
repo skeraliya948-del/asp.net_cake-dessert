@@ -8,275 +8,149 @@ namespace SweetDelights
 {
     public partial class insert : System.Web.UI.Page
     {
-        private void FillGrid()
+
+        SqlConnection con;
+        SqlCommand cmd;
+        SqlDataAdapter da;
+        DataSet ds;
+        string fnm;
+
+        string s = ConfigurationManager.ConnectionStrings["dbcon"].ConnectionString;
+
+        void getCon()
         {
-            using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-            using (SqlDataAdapter da = new SqlDataAdapter(
-                "SELECT Id, Name, Gender, Email, City, Mobile, Image FROM emp_tbl",
-                con))
-            {
-                DataTable users = new DataTable();
-                da.Fill(users);
-                GridView1.DataSource = users;
-                GridView1.DataBind();
-            }
+            con = new SqlConnection(s);
+            con.Open();
         }
 
-        private void FileUpload()
+        public void fileUpload()
         {
-            if (imgupload.HasFile)
-            {
-                string folderPath = Server.MapPath("images/");
-                if (!System.IO.Directory.Exists(folderPath))
-                {
-                    System.IO.Directory.CreateDirectory(folderPath);
-                }
-
-                fnm = "images/" + System.IO.Path.GetFileName(imgupload.FileName);
-                imgupload.SaveAs(Server.MapPath(fnm));
-            }
-            else
-            {
-                fnm = "images/default-user.jpg";
-            }
+            fnm = "images/" + imgupload.FileName;
+            imgupload.SaveAs(Server.MapPath(fnm));
         }
 
-        private string fnm;
+        void fillGrid()
+        {
+            getCon();
+            da = new SqlDataAdapter("Select * from emp_tbl", con);
+            ds = new DataSet();
+            da.Fill(ds);
+            GridView1.DataSource = ds;
+            GridView1.DataBind();
+            con.Close();
+        }
 
-        private void Clear()
+        public void clear()
         {
             txtusername.Text = string.Empty;
             txtaddress.Text = string.Empty;
             txtemail.Text = string.Empty;
             txtpassword.Text = string.Empty;
             txtmbl.Text = string.Empty;
-            rdogen.ClearSelection();
-            drpcity.ClearSelection();
+            rdogen.SelectedIndex = -1;
+            drpcity.SelectedIndex = -1;
         }
-
-        private bool RequireAdminSession()
-        {
-            if (DatabaseHelper.IsAdminEmail(Convert.ToString(Session["admin"])))
-            {
-                return true;
-            }
-
-            Response.Redirect("Login.aspx", false);
-            Context.ApplicationInstance.CompleteRequest();
-            return false;
-        }
+    }
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            bool isSignedIn = Session["uid"] != null;
-            bool isAdminSession = DatabaseHelper.IsAdminEmail(Convert.ToString(Session["admin"]));
-            pnlLoginLink.Visible = !isSignedIn;
-            pnlAdminGrid.Visible = true;
-            pnlUserRecords.Visible = isAdminSession;
-
-            if (!IsPostBack)
+            if (Session["admin"] != null)
             {
-                if (!isSignedIn)
-                {
-                    lblWelcome.Text = "Welcome to User Registration";
-                    return;
-                }
 
-                if (!isAdminSession)
-                {
-                    lblWelcome.Text = "Create your Sweet Delights account";
-                    Save_btn.Text = "Register";
-                    return;
-                }
+                pnlLoginLink.Visible = false;
+                pnlAdminGrid.Visible = true;
 
-                using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-                using (SqlCommand cmd = new SqlCommand(
-                    "SELECT Name FROM emp_tbl WHERE Email = @Email",
-                    con))
+                getCon();
+                da = new SqlDataAdapter("Select * from emp_tbl where Email='" + Session["admin"].ToString() + "'", con);
+                ds = new DataSet();
+                da.Fill(ds);
+                if (ds.Tables[0].Rows.Count > 0)
                 {
-                    cmd.Parameters.Add("@Email", SqlDbType.VarChar, 100).Value =
-                        DatabaseHelper.AdminEmail;
-                    object name = cmd.ExecuteScalar();
-                    lblWelcome.Text = name == null || name == DBNull.Value
-                        ? "Welcome " + DatabaseHelper.AdminEmail
-                        : "Welcome " + name.ToString();
+                    lblWelcome.Text = "Welcome " + ds.Tables[0].Rows[0]["Name"].ToString();
                 }
+                con.Close();
 
-                FillGrid();
+                fillGrid();
+            }
+            else
+            {
+
+                pnlLoginLink.Visible = true;
+                pnlAdminGrid.Visible = false;
             }
         }
 
-        private void FillData()
+        void fillData()
         {
-            int id = Convert.ToInt32(ViewState["id"]);
+            getCon();
+            da = new SqlDataAdapter("select * from emp_tbl where Id ='" + ViewState["id"] + "'", con);
+            ds = new DataSet();
+            da.Fill(ds);
 
-            using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-            using (SqlCommand cmd = new SqlCommand(
-                "SELECT Name, Gender, Email, City, Address, Mobile FROM emp_tbl WHERE Id = @Id",
-                con))
+            txtusername.Text = ds.Tables[0].Rows[0]["Name"].ToString();
+
+            if (ds.Tables[0].Rows[0]["Gender"].ToString() == "Male")
             {
-                cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    if (!reader.Read())
-                    {
-                        throw new InvalidOperationException("The selected user record no longer exists.");
-                    }
-
-                    txtusername.Text = Convert.ToString(reader["Name"]);
-                    string gender = Convert.ToString(reader["Gender"]);
-                    if (rdogen.Items.FindByValue(gender) != null)
-                    {
-                        rdogen.SelectedValue = gender;
-                    }
-
-                    txtemail.Text = Convert.ToString(reader["Email"]);
-                    string city = Convert.ToString(reader["City"]);
-                    if (drpcity.Items.FindByValue(city) != null)
-                    {
-                        drpcity.SelectedValue = city;
-                    }
-
-                    txtaddress.Text = Convert.ToString(reader["Address"]);
-                    txtmbl.Text = Convert.ToString(reader["Mobile"]);
-                }
+                rdogen.SelectedValue = "Male";
             }
+            else
+            {
+                rdogen.SelectedValue = "Female";
+            }
+
+            txtemail.Text = ds.Tables[0].Rows[0]["Email"].ToString();
+            drpcity.SelectedValue = ds.Tables[0].Rows[0]["City"].ToString();
+            txtaddress.Text = ds.Tables[0].Rows[0]["Address"].ToString();
+            txtmbl.Text = ds.Tables[0].Rows[0]["Mobile"].ToString();
+            con.Close();
         }
 
         protected void Save_btn_Click(object sender, EventArgs e)
         {
-            bool isInsert = Save_btn.Text == "Save";
-
-            if (isInsert)
+            if (Save_btn.Text == "Save")
             {
-                bool shouldSignInNewUser = Session["uid"] == null;
-                if (!DatabaseHelper.IsAdminEmail(Convert.ToString(Session["admin"])) &&
-                    DatabaseHelper.IsAdminEmail(txtemail.Text.Trim()))
-                {
-                    Response.Write("<script>alert('This email address is reserved for the store administrator.')</script>");
-                    return;
-                }
-
-                FileUpload();
-
-                using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-            using (SqlCommand cmd = new SqlCommand(
-                "INSERT INTO emp_tbl (Name, Gender, Email, Password, City, Address, Mobile, Image) " +
-                "VALUES (@Name, @Gender, @Email, @Password, @City, @Address, @Mobile, @Image); " +
-                "SELECT CAST(SCOPE_IDENTITY() AS int);",
-                con))
-                {
-                    cmd.Parameters.Add("@Name", SqlDbType.VarChar, 100).Value = txtusername.Text;
-                    cmd.Parameters.Add("@Gender", SqlDbType.VarChar, 20).Value = rdogen.SelectedValue;
-                    cmd.Parameters.Add("@Email", SqlDbType.VarChar, 100).Value = txtemail.Text;
-                    cmd.Parameters.Add("@Password", SqlDbType.VarChar, 100).Value = txtpassword.Text;
-                    cmd.Parameters.Add("@City", SqlDbType.VarChar, 50).Value = drpcity.SelectedValue;
-                    cmd.Parameters.Add("@Address", SqlDbType.VarChar, 255).Value = txtaddress.Text;
-                    cmd.Parameters.Add("@Mobile", SqlDbType.VarChar, 20).Value = txtmbl.Text;
-                    cmd.Parameters.Add("@Image", SqlDbType.VarChar, 255).Value = fnm;
-
-                    int userId;
-                    try
-                    {
-                        userId = Convert.ToInt32(cmd.ExecuteScalar());
-                    }
-                    catch (SqlException ex)
-                    {
-                        if (ex.Number == 2627 || ex.Number == 2601)
-                        {
-                            Response.Write("<script>alert('This email address is already registered.')</script>");
-                            return;
-                        }
-
-                        throw;
-                    }
-
-                    if (shouldSignInNewUser)
-                    {
-                        Session["uid"] = userId;
-                        Session["admin"] = txtemail.Text;
-                        Session["User"] = new User
-                        {
-                            FullName = txtusername.Text,
-                            Email = txtemail.Text,
-                            Phone = txtmbl.Text,
-                            IsLoggedIn = true
-                        };
-                        lblWelcome.Text = "Welcome " + txtusername.Text;
-                    }
-                }
-
-                Response.Write("<script>alert('User registered successfully.')</script>");
+                getCon();
+                fileUpload();
+                string command = "insert into emp_tbl(Name,Gender,Email,Password,City,Address,Mobile,Image) values('" + txtusername.Text + "','" + rdogen.SelectedValue + "','" + txtemail.Text + "','" + txtpassword.Text + "','" + drpcity.SelectedValue + "','" + txtaddress.Text + "','" + txtmbl.Text + "','" + fnm + "')";
+                cmd = new SqlCommand(command, con);
+                cmd.ExecuteNonQuery();
+                con.Close();
+                fillGrid();
+                Response.Write("Data Inserted Successfully");
+                clear();
             }
             else
             {
-                if (!RequireAdminSession())
-                {
-                    return;
-                }
-
-                int id = Convert.ToInt32(ViewState["id"]);
-
-                using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-                using (SqlCommand cmd = new SqlCommand(
-                    "UPDATE emp_tbl SET Name = @Name, Gender = @Gender, Email = @Email, " +
-                    "City = @City, Address = @Address, Mobile = @Mobile WHERE Id = @Id",
-                    con))
-                {
-                    cmd.Parameters.Add("@Name", SqlDbType.VarChar, 100).Value = txtusername.Text;
-                    cmd.Parameters.Add("@Gender", SqlDbType.VarChar, 20).Value = rdogen.SelectedValue;
-                    cmd.Parameters.Add("@Email", SqlDbType.VarChar, 100).Value = txtemail.Text;
-                    cmd.Parameters.Add("@City", SqlDbType.VarChar, 50).Value = drpcity.SelectedValue;
-                    cmd.Parameters.Add("@Address", SqlDbType.VarChar, 255).Value = txtaddress.Text;
-                    cmd.Parameters.Add("@Mobile", SqlDbType.VarChar, 20).Value = txtmbl.Text;
-                    cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
-                    cmd.ExecuteNonQuery();
-                }
-
-                Response.Write("<script>alert('User details updated successfully.')</script>");
+                getCon();
+                cmd = new SqlCommand("update emp_tbl set Name='" + txtusername.Text + "',Gender='" + rdogen.SelectedValue + "',Email='" + txtemail.Text + "',City='" + drpcity.SelectedValue + "',Address='" + txtaddress.Text + "',Mobile='" + txtmbl.Text + "' where Id='" + ViewState["id"] + "'", con);
+                cmd.ExecuteNonQuery();
+                con.Close();
+                fillGrid();
+                clear();
+                Response.Write("Data Edited Successfully");
                 Save_btn.Text = "Save";
-            }
-
-            Clear();
-            if (DatabaseHelper.IsAdminEmail(Convert.ToString(Session["admin"])))
-            {
-                FillGrid();
             }
         }
 
         protected void GridView1_RowCommand(object sender, GridViewCommandEventArgs e)
         {
-            if (!RequireAdminSession())
-            {
-                return;
-            }
-
-            int id;
-            if (!int.TryParse(Convert.ToString(e.CommandArgument), out id))
-            {
-                throw new InvalidOperationException("The selected user record has an invalid ID.");
-            }
-
             if (e.CommandName == "cmd_edt")
             {
+                int id = Convert.ToInt32(e.CommandArgument);
                 ViewState["id"] = id;
                 Save_btn.Text = "Update";
-                FillData();
+                fillData();
             }
-            else if (e.CommandName == "cmd_del")
+            else
             {
-                using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-                using (SqlCommand cmd = new SqlCommand(
-                    "DELETE FROM emp_tbl WHERE Id = @Id",
-                    con))
-                {
-                    cmd.Parameters.Add("@Id", SqlDbType.Int).Value = id;
-                    cmd.ExecuteNonQuery();
-                }
-
-                FillGrid();
-                Response.Write("<script>alert('User record deleted successfully.')</script>");
+                getCon();
+                cmd = new SqlCommand("delete from emp_tbl where Id = '" + e.CommandArgument + "'", con);
+                cmd.ExecuteNonQuery();
+                con.Close();
+                fillGrid();
+                Response.Write("Data Deleted Successfully");
             }
+        }
         }
     }
 }
