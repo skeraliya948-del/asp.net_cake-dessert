@@ -8,183 +8,120 @@ namespace SweetDelights
 {
     public partial class Admin_Orders : Page
     {
-        private int? SelectedOrderNo
+        SqlConnection con;
+        SqlCommand cmd;
+        SqlDataAdapter da;
+        DataSet ds;
+
+        string s = ConfigurationManager.ConnectionStrings["dbcon"].ConnectionString;
+
+        void getCon()
         {
-            get
-            {
-                int orderNo;
-                return int.TryParse(Request.QueryString["orderno"], out orderNo) && orderNo > 0
-                    ? (int?)orderNo
-                    : null;
-            }
+            con = new SqlConnection(s);
+            con.Open();
         }
 
-        private bool RequireAdmin()
+        void fillGrid()
         {
-            if (DatabaseHelper.IsAdminEmail(Convert.ToString(Session["admin"])))
-            {
-                return true;
-            }
+            getCon();
 
-            Response.Redirect("Login.aspx", false);
-            Context.ApplicationInstance.CompleteRequest();
-            return false;
-        }
-
-        private void BindOrders()
-        {
             string query =
-                "SELECT o.Order_No, o.Order_Date, u.Name, u.Email, o.Grand_Total, " +
-                "o.Pay_Status, o.Order_Status " +
-                "FROM Order_Tbl o INNER JOIN emp_tbl u ON u.Id = o.Order_User_Id ";
-            if (SelectedOrderNo.HasValue)
-            {
-                query += "WHERE o.Order_No = @Order_No ";
-            }
-            query += "ORDER BY o.Order_Date DESC, o.Order_No DESC";
+                "SELECT o.Order_Id, o.Order_No, " +
+                "ISNULL(e.Name, 'Unknown') AS Name, " +
+                "ISNULL(p.Prod_Name, 'Unknown') AS Prod_Name, " +
+                "o.Quentity, " +
+                "(o.Quentity * ISNULL(p.Prod_Price, 0)) AS Amount, " +
+                "o.Order_Date, o.Ship_Address, " +
+                "o.Pay_Method, o.Pay_Status, " +
+                "ISNULL(o.Order_Status, 'Pending') AS Order_Status " +
+                "FROM Order_Tbl o " +
+                "LEFT JOIN emp_tbl e " +
+                "ON o.Order_User_Id = e.Id " +
+                "LEFT JOIN Add_Products_Tbl p " +
+                "ON o.Order_Prod_Id = p.Prod_Id ";
 
-            using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-            using (SqlCommand cmd = new SqlCommand(query, con))
-            using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
-            {
-                if (SelectedOrderNo.HasValue)
-                {
-                    cmd.Parameters.Add("@Order_No", SqlDbType.Int).Value = SelectedOrderNo.Value;
-                }
+            int orderNo;
 
-                DataTable orders = new DataTable();
-                adapter.Fill(orders);
-                GridViewOrders.DataSource = orders;
-                GridViewOrders.DataBind();
-                lblOrdersMessage.Text = orders.Rows.Count == 0
-                    ? "No matching orders were found."
-                    : string.Empty;
+            if (int.TryParse(Request.QueryString["orderno"], out orderNo)
+                && orderNo > 0)
+            {
+                query += "WHERE o.Order_No = " + orderNo + " ";
             }
 
-            if (SelectedOrderNo.HasValue)
+            query += "ORDER BY o.Order_Date DESC, o.Order_Id DESC";
+
+            da = new SqlDataAdapter(query, con);
+
+            ds = new DataSet();
+            da.Fill(ds);
+
+            GridView1.DataSource = ds;
+            GridView1.DataBind();
+
+            if (ds.Tables[0].Rows.Count > 0)
             {
-                BindOrderDetails(SelectedOrderNo.Value);
+                lblMessage.Text = "Order Details Loaded Successfully";
             }
             else
             {
-                pnlOrderDetails.Visible = false;
+                lblMessage.Text = "No Orders Found";
             }
-        }
 
-        private void BindOrderDetails(int orderNo)
-        {
-            using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-            using (SqlCommand cmd = new SqlCommand(
-                "SELECT Product_Name, Quentity, Unit_Price, " +
-                "(Quentity * Unit_Price) AS Line_Total " +
-                "FROM Order_Details_Tbl WHERE Order_No = @Order_No ORDER BY Order_Detail_Id",
-                con))
-            using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
-            {
-                cmd.Parameters.Add("@Order_No", SqlDbType.Int).Value = orderNo;
-                DataTable details = new DataTable();
-                adapter.Fill(details);
-                GridViewDetails.DataSource = details;
-                GridViewDetails.DataBind();
-                pnlOrderDetails.Visible = details.Rows.Count > 0;
-            }
-        }
+            con.Close();
+        
 
+     
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (!RequireAdmin())
-            {
-                return;
-            }
 
             if (!IsPostBack)
             {
-                if (!string.IsNullOrEmpty(Request.QueryString["orderno"]) && !SelectedOrderNo.HasValue)
-                {
-                    lblOrdersMessage.Text = "The order number is invalid.";
-                    return;
-                }
-
-                BindOrders();
+                fillGrid();
             }
         }
 
-        protected void GridViewOrders_RowDataBound(object sender, GridViewRowEventArgs e)
+        protected void GridView1_RowEditing(object sender, GridViewEditEventArgs e)
         {
-            if (e.Row.RowType != DataControlRowType.DataRow)
-            {
-                return;
-            }
+            GridView1.EditIndex = e.NewEditIndex;
+            fillGrid();
+        }
+        protected void GridView1_RowUpdating(object sender, GridViewUpdateEventArgs e)
+        {
+            int id = Convert.ToInt32(GridView1.DataKeys[e.RowIndex].Value);
 
-            DropDownList orderStatus = (DropDownList)e.Row.FindControl("ddlOrderStatus");
-            DropDownList paymentStatus = (DropDownList)e.Row.FindControl("ddlPayStatus");
-            string currentOrderStatus = Convert.ToString(DataBinder.Eval(e.Row.DataItem, "Order_Status"));
-            string currentPaymentStatus = Convert.ToString(DataBinder.Eval(e.Row.DataItem, "Pay_Status"));
+            DropDownList ddlPay =
+                (DropDownList)GridView1.Rows[e.RowIndex].FindControl("ddlPayStatus");
 
-            if (orderStatus.Items.FindByValue(currentOrderStatus) != null)
-            {
-                orderStatus.SelectedValue = currentOrderStatus;
-            }
+            DropDownList ddlOrder =
+                (DropDownList)GridView1.Rows[e.RowIndex].FindControl("ddlOrderStatus");
 
-            if (paymentStatus.Items.FindByValue(currentPaymentStatus) != null)
-            {
-                paymentStatus.SelectedValue = currentPaymentStatus;
-            }
+            string payStatus = ddlPay.SelectedValue;
+            string orderStatus = ddlOrder.SelectedValue;
+
+            getCon();
+
+            string query =
+                "UPDATE Order_Tbl SET " +
+                "Pay_Status = '" + payStatus + "', " +
+                "Order_Status = '" + orderStatus + "' " +
+                "WHERE Order_Id = " + id;
+
+            cmd = new SqlCommand(query, con);
+            cmd.ExecuteNonQuery();
+
+            con.Close();
+
+            GridView1.EditIndex = -1;
+            fillGrid();
+
+            lblMessage.Text = "Payment and Order Status Updated Successfully";
         }
 
-        protected void GridViewOrders_RowCommand(object sender, GridViewCommandEventArgs e)
+        protected void GridView1_RowCancelingEdit(object sender, GridViewCancelEditEventArgs e)
         {
-            if (e.CommandName != "save_status")
-            {
-                return;
-            }
-
-            if (!RequireAdmin())
-            {
-                return;
-            }
-            int orderNo;
-            GridViewRow row = ((Control)e.CommandSource).NamingContainer as GridViewRow;
-            if (row == null ||
-                !int.TryParse(Convert.ToString(e.CommandArgument), out orderNo) ||
-                orderNo <= 0)
-            {
-                throw new InvalidOperationException("The selected order has an invalid ID.");
-            }
-
-            DropDownList orderStatus = (DropDownList)row.FindControl("ddlOrderStatus");
-            DropDownList paymentStatus = (DropDownList)row.FindControl("ddlPayStatus");
-            string orderStatusValue = orderStatus.SelectedValue;
-            string paymentStatusValue = paymentStatus.SelectedValue;
-
-            if ((orderStatusValue != "Pending" &&
-                 orderStatusValue != "Processing" &&
-                 orderStatusValue != "Completed" &&
-                 orderStatusValue != "Cancelled") ||
-                (paymentStatusValue != "Pending" &&
-                 paymentStatusValue != "Paid" &&
-                 paymentStatusValue != "Refunded"))
-            {
-                throw new InvalidOperationException("Select valid order and payment statuses.");
-            }
-
-            using (SqlConnection con = DatabaseHelper.GetOpenConnection())
-            using (SqlCommand cmd = new SqlCommand(
-                "UPDATE Order_Tbl SET Order_Status = @Order_Status, Pay_Status = @Pay_Status " +
-                "WHERE Order_No = @Order_No",
-                con))
-            {
-                cmd.Parameters.Add("@Order_Status", SqlDbType.VarChar, 30).Value = orderStatusValue;
-                cmd.Parameters.Add("@Pay_Status", SqlDbType.VarChar, 30).Value = paymentStatusValue;
-                cmd.Parameters.Add("@Order_No", SqlDbType.Int).Value = orderNo;
-                if (cmd.ExecuteNonQuery() != 1)
-                {
-                    throw new InvalidOperationException("The selected order could not be updated.");
-                }
-            }
-
-            BindOrders();
-            lblOrdersMessage.Text = "Order #" + orderNo + " was updated.";
+            GridView1.EditIndex = -1;
+            fillGrid();
         }
     }
+
 }
